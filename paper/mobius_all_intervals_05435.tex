@@ -1,0 +1,837 @@
+\documentclass[11pt]{amsart}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=0.9in]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\setlength{\emergencystretch}{3em}
+\raggedbottom
+\pdfstringdefDisableCommands{\def\e{eps}\def\vartheta{theta}}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\e}{\varepsilon}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\Lfp}{Lemma~\ref{lem:L44}}
+
+\title[M\"obius in all intervals of length $x^{0.5435}$]{M\"obius cancellation in all intervals of length $x^{0.5435}$}
+\author{Automated multi-agent proof search (Claude, Anthropic)}
+\date{3 October 2026 (phase~II version). Refereed internally by independent agents (R2, R3; phase~II changes: R4), not by humans. See \S\ref{sec:prov} for provenance and status.}
+
+
+
+\begin{document}
+\begin{abstract}
+We give an argument, partly computer-assisted and refereed only internally, that for every $\vartheta>0.5435$ and $\e_0>0$ one has
+$\sum_{x<n\le x+H}\mu(n)\ll H(\log x)^{-1/3+\e_0}$ for all $H\ge x^{\vartheta}$. This would lower the exponent $0.55$
+of Matom\"aki and Ter\"av\"ainen by $0.0065$. Their reduction is kept unchanged. The only new step replaces their Heath-Brown--Iwaniec type lemma.
+In its place we use a level-set argument built on the Guth--Maynard large values estimates, including the $\inf_k$ form of their
+Proposition~12.1, and on the fourth moment of $\zeta$. A branch-and-bound certificate in exact rational arithmetic, with margin $10^{-5}$,
+closes the exponent bookkeeping. The binding configuration is five smooth factors of length $x^{1/5}$. With our inputs it closes exactly when
+$\vartheta>69/127=0.5433071\ldots$, which is the limit of the method. The certificate also passes at $\vartheta=0.543308=69/127+9.1\cdot10^{-7}$,
+and a control run at $\vartheta=0.5433$ fails. We also record why the routes tried in this project do not go below $69/127$; in the binding case
+the problem is a fifth-moment bound for a single segment of the zeta function.
+\end{abstract}
+\maketitle
+
+\section{Introduction}
+
+Let $\mu$ be the M\"obius function. Matom\"aki and Ter\"av\"ainen \cite[Theorem~1.1]{MT} proved the following. \emph{Let $\theta>0.55$ and
+$\e>0$ be fixed. Then for $x$ large enough and $H\ge x^{\theta}$,
+$\sum_{x<n\le x+H}\mu(n)=O(H/(\log x)^{1/3-\e})$.} The exponent $0.55=11/20$ is the Heath-Brown--Iwaniec exponent for primes
+in short intervals \cite{HBI}. It enters \cite{MT} through one lemma, \cite[Lemma~4.4]{MT}, which they take from
+\cite[Lemma~2]{HBI} (see also \cite[Lemma~10.12]{Ha}). MT remark in \cite[\S2.1]{MT} that the proof of that lemma is not continuous in
+$\theta$ and depends essentially on $\theta>0.55$. This is a paraphrase of text obtained through a summarising fetch tool.
+In the level-set model used below, the classical large values inputs (the mean value theorem, Huxley's estimate \cite{Hu} and
+Jutila's estimate \cite{Ju}) are consistent with this exponent: the same code certifies $0.552$ and fails at $0.548$ (\S\ref{sec:limits}). Guth and Maynard \cite{GM} have since improved large
+values estimates for Dirichlet polynomials taking values near $N^{3/4}$. This note records what their estimates give in the Matom\"aki--Ter\"av\"ainen
+framework. An earlier version of this note proved the result below for $\vartheta>0.548$, using only the closed form of \cite[Proposition~12.1]{GM}.
+
+\begin{theorem}\label{thm:main}
+Let $\vartheta>0.5435$ and $\e_0>0$ be fixed. Then for $x$ large enough and $H\ge x^{\vartheta}$,
+\[
+\sum_{x<n\le x+H}\mu(n)\ll \frac{H}{(\log x)^{1/3-\e_0}}.
+\]
+In particular, the exponent $11/20$ of \cite{MT} can be lowered by $0.0065$: for every fixed $\vartheta>11/20-0.0065$ one has
+$\sum_{x<n\le x+H}\mu(n)=o(H)$ for all $H\ge x^{\vartheta}$.
+\end{theorem}
+
+\noindent\textbf{Status.} The proof (\S\S\ref{sec:red}--\ref{sec:proof}) is complete as written, modulo three things.
+\begin{enumerate}[label=(\alph*),leftmargin=*]
+\item The cited results. The statements from \cite{MT} were read only through a summarising tool. An independent re-check (S3), also via
+such a tool, agrees (Remark~\ref{rem:sources}). Classical results are cited as standard, without theorem numbers.
+\item A computer certificate (\S\ref{sec:cert}) in exact rational arithmetic, with margin $10^{-5}$. It extends the certificate of the
+$0.548$ version (run in double precision and ported to exact arithmetic by a separate agent) by one estimate, the $\inf_k$ form of
+\cite[Proposition~12.1]{GM}. The extension was written by one agent (GA). The referee R4 re-ran it, and re-checked every accepted
+leaf with an independently written script (\S\ref{sec:cert}); the writer of this note also re-ran the headline invocation and obtained the same tiling.
+\item Refereeing. The proofs of the $0.548$ version were refereed by an independent agent (R2), with verdict \emph{correct with minor fixable
+issues}; all issues were addressed. A second, fresh-eyes referee (R3) read that note; its minor issues were also applied. The changes made for
+$0.5435$ (listed in \S\ref{sec:prov}) were refereed by a third independent agent (R4), with verdict \emph{accept}: no blocking or major
+issues, and four minor ones, all addressed here. There has been no human refereeing.
+\end{enumerate}
+We regard the result as \emph{unverified} until it has been checked outside this project.
+
+\smallskip
+\noindent\textbf{Method.} We follow \cite{MT} verbatim up to the point where \cite[Lemma~4.4]{MT} is used (\S\ref{sec:red}). In its place we prove
+\Lfp\ (\S\ref{sec:L44}). The configuration is a product $ABC$ of Dirichlet polynomials: $A$ and $B$ are arbitrary and divisor-bounded,
+and $C$ is a smooth (zeta-type) partial sum. We need an $L^1$ bound for $ABC$ on $[N_C,x^{\tau}]$ with $\tau\approx 0.4565$.
+We discretise and split into level sets. On each level set the number of points is bounded by the smallest of several estimates:
+\begin{itemize}[leftmargin=*]
+\item the mean value theorem;
+\item Guth--Maynard's Theorem~1.1 and the $\inf_k$ form of their Proposition~12.1, applied to a fixed finite family of products of $A$, $B$, $C$;
+\item a fourth-moment bound for $C$, which we transfer from $\zeta$ (Lemma~\ref{lem:Z}).
+\end{itemize}
+Three regions need separate arguments. Small $t$ and long $C$ are handled by Cauchy--Schwarz. The ``corner'' where $|A|$ and $|B|$ are both nearly maximal is
+handled by the Hal\'asz--Montgomery inequality and the Vinogradov--Korobov saving of the prime polynomial. A rigorous box
+certificate covers the rest of parameter space.
+
+\smallskip
+\noindent\textbf{Limits.} With smaller margins the same certificate passes at $\vartheta=0.543308=69/127+9.1\cdot10^{-7}$
+(Remark~\ref{rem:543308}). The number $69/127=0.5433071\ldots$ is the limit of the method. For five smooth factors of length $x^{1/5}$ the
+inputs used close the case exactly when $\vartheta>69/127$; this is a refereed computation (P2, R1), recomputed exactly in phase~II (PB1).
+A control run of the certificate at $\vartheta=0.5433$ fails. Section~\ref{sec:limits} records what phase~II of the search found about going
+below $69/127$. In the binding case the problem is a fifth-moment bound for one zeta segment. A joint large values route is refuted. An
+additive-energy input inside the Guth--Maynard method could gain at most $69/127-19/35\approx0.00045$. We also list priced targets.
+Finally, \S\ref{sec:sub542} records a refereed reduction below $69/127$. For $\vartheta>0.542$, everything outside a near-equal family of
+configurations is certified.
+
+\section{The Matom\"aki--Ter\"av\"ainen reduction}\label{sec:red}
+
+Throughout, $T_0=\exp((\log x)^{1/3})$. Write $f\ll_A g$ when the constant depends on $A$; all other constants may depend on the fixed
+parameters. We use MT's notation with a general exponent. Fix $\theta\in(0.53,0.56)$ and a small $\e>0$. Let $H\asymp
+x^{\theta+\e}$. Take $P=\exp((\log x)^{2/3+\e/2})$, $Q=x^{1/(\log\log x)^2}$ and $k=20$, as in \cite[\S4.1]{MT}. MT take $\theta=0.55$.
+
+\begin{lemma}[{\cite[Lemma~3.1]{MT}}]\label{lem:ramare}
+Let $\e>0$ be fixed, $x$ large, $(\log x)^4\le P<Q\le x^{o(1/\log\log x)}$ and $x^{\e}\le H\le x$. Then
+\[
+\sum_{x<n\le x+H}\mu(n)=-\!\!\sum_{\substack{x<prn\le x+H\\ P<p\le Q,\ r\le x^{\e/2}}}\!\! a_r\mu(n)+O\Big(H\frac{\log P}{\log Q}\Big),
+\]
+with explicit divisor-bounded coefficients $a_r$ (a Ramar\'e-type weight).
+\end{lemma}
+
+With the above $P,Q$, the error term is $\ll H(\log x)^{-1/3+\e}$. This is the only source of the exponent $1/3$.
+Heath-Brown's identity with $k=20$ and a dyadic decomposition \cite[\S4.1]{MT} reduce matters to $\ll(\log x)^{2k+2}$ sums over
+$x<prn_1\cdots n_{2k-1}\le x+H$, with $p\sim P_1$, $r\sim R$ and $n_i\sim N_i$. The parameters satisfy
+\begin{equation}\label{eq:config}
+P_1\in[P,Q],\quad R\in[\tfrac12,x^{\e/2}],\quad N_i\in[\tfrac12,x]\ (i\le k-1),\quad N_i\in[\tfrac12,(2x)^{1/k}]\ (i\ge k),\quad P_1R\textstyle\prod_iN_i\asymp x.
+\end{equation}
+For $i\le k-1$ the coefficients $a_i(n)$ are $1$ or $\log n$; we call these factors \emph{smooth}. For $i\ge k$ they are of M\"obius type,
+$\mu(n)\mathbf 1_{n\le(2x)^{1/k}}$. Each such sum must be compared with $H/y_1$ times the same sum over $(x,x+y_1]$, where
+$y_1=x\exp(-3(\log x)^{1/3})$; call this comparison $(\ast)$. Write
+$P(s)=\sum_{P_1<p\le 2P_1}p^{-s}$, $R(s)=\sum_{r\sim R}a_rr^{-s}$ and $N_i(s)=\sum_{n\sim N_i}a_i(n)n^{-s}$.
+
+\begin{lemma}[{\cite[Lemma~4.2]{MT}}]\label{lem:perron}
+Suppose that for all $A>0$,
+\begin{equation}\label{eq:L1}
+\int_{T_0}^{x^{1+\e/10}/H}|P R N_1\cdots N_{2k-1}(\tfrac12+it)|\,dt\ll_A x^{1/2}(\log x)^{-A}.
+\end{equation}
+Then $(\ast)$ holds with error $O_A(H(\log x)^{-A})$.
+\end{lemma}
+
+\begin{lemma}[Vinogradov--Korobov; proof of {\cite[Lemma~4.3]{MT}}]\label{lem:VK}
+For $|t|\le x^2$, $|P(1+it)|\ll P_1^{-1/(\log x)^{2/3+\e/3}}(\log x)^3+\log x/(|t|+1)$. The same bound holds for every
+partial sum over $(P_1,u]$ with $u\le2P_1$. Partial summation then gives $\sup_{T_0\le|t|\le x^2}|P(\frac12+it)|\ll_A P_1^{1/2}(\log x)^{-A}$.
+This is the step MT use in their proof of \cite[Lemma~4.3]{MT}, whose final bound carries the factor $P_1^{1/2}(\log x)^{-A}$.
+\end{lemma}
+
+\begin{lemma}[Type II; {\cite[Lemma~4.3]{MT}} with a general window]\label{lem:typeII}
+Let $T=x^{1+\e/10}/H$ and $X_I=\prod_{i\in I}N_i$. If some $I\subset[2k-1]$ has both $X_I\ge T$ and $X_{[2k-1]\setminus I}\ge T$, then
+\eqref{eq:L1} holds.
+\end{lemma}
+
+\begin{proof}
+This is MT's proof. Lemma~\ref{lem:VK} bounds $P$ and the trivial bound handles $R$. The rest is
+Cauchy--Schwarz and the mean value theorem, Lemma~\ref{lem:MV}:
+$\int_{T_0}^T|\prod_I N_i\prod_{I^c}N_i|\ll(T+X_I)^{1/2}(T+X_{I^c})^{1/2}(\log x)^{O(1)}\ll(X_IX_{I^c})^{1/2}(\log x)^{O(1)}$.
+\end{proof}
+
+MT state the window as $X_I\in[x^{0.45-\e/2},x^{0.55+\e/2}]$. At its upper end the complement condition holds only after a
+harmless adjustment: either group $R$ with $I^c$, or note that MT's Lemma~4.5 only produces $X_I\in[x^{0.45},x^{0.55}]$.
+
+\begin{lemma}[Combinatorics; cf.\ proof of {\cite[Lemma~4.5]{MT}}]\label{lem:comb}
+Let $0\le w_1<w_2$, $\alpha_i>0$ and $S=\sum_i\alpha_i>w_2$. Suppose no subsum lies in $[w_1,w_2]$. Let $I$ have the largest subsum
+$\le w_2$. Then $\sum_I\alpha_i<w_1$. Moreover, some $r\notin I$ exists, and every $r\notin I$ satisfies $\alpha_r>w_2-\sum_I\alpha_i$ and
+$\sum_{J}\alpha_j<S-w_2$, where $J=[K]\setminus(I\cup\{r\})$.
+\end{lemma}
+
+\begin{proof}
+$\sum_I\le w_2$ is not in $[w_1,w_2]$, so it is $<w_1$. Since $\sum_I<S$, some $r\notin I$ exists. Maximality and
+$\alpha_r>0$ give $\sum_I+\alpha_r>w_2$, and then $\sum_J=S-\sum_I-\alpha_r<S-w_2$.
+\end{proof}
+
+\begin{remark}[$\theta$-independence of the rest of MT's proof; audit]\label{prop:indep}
+In the proof of \cite[Theorem~1.1]{MT}, the hypothesis $\theta>0.55$ enters only in five places (lemma numbers refer to \cite{MT}):
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item Lemma~4.4;
+\item the window of Lemma~4.3, which comes from the cut $T=x^{1+\e/10}/H$;
+\item the numbers in Lemma~4.5;
+\item the type~I Lemma~4.1, which MT note is already covered by the other two lemmas (paraphrase);
+\item the check that $k=20$ and $N_r\gg x^{0.079}$ in the proof of Lemma~4.4.
+\end{enumerate}
+Everything else uses only $x^{\e}\le H\le x$:
+\begin{itemize}[leftmargin=*]
+\item Lemma~\ref{lem:ramare};
+\item Heath-Brown's identity and the reduction to $H\asymp x^{\theta+\e}$;
+\item Lemma~\ref{lem:perron}, including the ranges $|t|\le T_0$ and the polynomial $R$;
+\item Lemma~\ref{lem:VK};
+\item the final step through the prime number theorem with Vinogradov--Korobov error term.
+\end{itemize}
+\end{remark}
+
+This is the conclusion of an audit of \cite{MT} (internal report S2). An independent re-check of the MT text (S3) agrees that only
+\cite[Lemma~4.4]{MT} needs $\theta>0.55$; its quotes were also obtained through a summarising web tool. The S2 audit used the arXiv PDF and the ar5iv rendering,
+read through a summarising fetch tool. For Lemma~\ref{lem:perron}, MT cite \cite[Lemma~7.2]{Ha}, which we could not consult. The audit
+instead re-derived the Perron step and found it uniform in $\theta$. So, by Remark~\ref{prop:indep}, items (i)--(v) are the only
+changes needed. Lemma~\ref{lem:typeII} and Lemma~\ref{lem:comb} take care of (ii)--(iv). Item (v) holds because $2\theta-1-\e>1/20$ for
+$\theta>0.53$. Item (i) is \Lfp\ below.
+
+\section{Analytic inputs}\label{sec:inputs}
+
+For each input we give the statement in the form used. ``$\lessapprox$'' means $\le C_\eta T^{\eta}$ for every $\eta>0$.
+
+\begin{lemma}[Mean value theorem; standard, see {\cite{MV}}, {\cite{Ga}}]\label{lem:MV}
+$\int_0^U|\sum_{n\le N}a_nn^{-it}|^2dt=\sum|a_n|^2(U+O(n))$. Also, if the $t_r\in[0,T]$ are $1$-separated, then
+$\sum_r|\sum_{n\le N}a_nn^{-it_r}|^2\ll(T+N)\log(2N)\sum|a_n|^2$.
+\end{lemma}
+
+\begin{lemma}[{Guth--Maynard \cite[Theorem~1.1]{GM}}]\label{lem:GM1}
+Suppose $|b_n|\le1$ and $(t_r)_{r\le R}$ are $1$-separated points in $[0,T]$ with $|\sum_{n=N}^{2N}b_nn^{it_r}|\ge V$ for all $r\le R$. Then
+$R\le T^{o(1)}(N^2V^{-2}+N^{18/5}V^{-4}+TN^{12/5}V^{-4})$.
+\end{lemma}
+
+\begin{lemma}[{Guth--Maynard \cite[Proposition~12.1]{GM}}, quoted verbatim]\label{lem:GM12}
+``Suppose $(b_n)_{n\sim N}$, $(t_r)_{r\le R}$ are as in Theorem~1.1, and that $T^{5/6}\le N\le T$ and $V=N^{\sigma}$ with $\sigma\ge7/10$. Then
+we have
+\[
+R\lessapprox N^{2-2\sigma}+T^{1/2}N^{3-4\sigma}+\inf_{k\in\mathbb N}\Big(T^{\frac{k}{k+1}}N^{(4-6\sigma)\frac{k}{k+1}}+N^{(5-6\sigma)\frac{4k}{4k+3}}T^{\frac{2}{4k+3}}\Big).
+\]
+In particular, we have
+\[
+R\lessapprox N^{2-2\sigma}+T^{1/2}N^{3-4\sigma}+T^{(30\sigma-21)/5}N^{(46-60\sigma)/5}."
+\]
+\end{lemma}
+
+Here ``Theorem~1.1'' is \cite[Theorem~1.1]{GM}, i.e.\ Lemma~\ref{lem:GM1}: the hypotheses are $|b_n|\le1$, the $t_r$ are $1$-separated in
+$[0,T]$, and $|\sum_{n=N}^{2N}b_nn^{it_r}|\ge V$ for every $r$. In \cite[\S1.2]{GM}, $A\lessapprox B$ means that for every $\epsilon>0$ there is
+$C(\epsilon)$ with $|A|\le C(\epsilon)T^{\epsilon}B$ for all large $T$. The quotation was compared line by line with the arXiv text of \cite{GM}
+(reports GA and R4; the closed form was also checked by R2 for the $0.548$ version). We use the first display with $k\in\{1,\dots,12\}$ only. Since the
+infimum is at most its value at any fixed $k$, each fixed $k$ gives a valid bound, with a $\lessapprox$-constant independent of $k$ (R4).
+The proof does not use the ``in particular'' display (the closed form used in the $0.548$ version); it enters only one cross-check run (\S\ref{sec:cert}).
+
+\begin{lemma}[Ingham {\cite{In}}; standard, see also {\cite{Ti}}]\label{lem:Ing}
+$\int_0^T|\zeta(\frac12+it)|^4dt\ll T\log^4T$.
+\end{lemma}
+
+\begin{lemma}[Hal\'asz--Montgomery inequality; standard, see {\cite{Mo}}, {\cite{Iv}}]\label{lem:HM}
+If the $t_r\in[-T,T]$ are $1$-separated and $c_n$ is supported on $n\asymp N$, then
+$\sum_{r\le R}|\sum_nc_nn^{-it_r}|^2\ll(N+RT^{1/2})\log(2T)\sum|c_n|^2$.
+\end{lemma}
+
+\begin{lemma}[Approximation by partial sums; standard, see {\cite{Ti}}]\label{lem:T411}
+For $\sigma\ge\sigma_0>0$, $|t|<2\pi y/C$ with $C>1$ fixed: $\zeta(s)=\sum_{n\le y}n^{-s}-\frac{y^{1-s}}{1-s}+O(y^{-\sigma})$.
+\end{lemma}
+
+\begin{lemma}[Third-derivative test; standard, see {\cite{Ti}}, {\cite{GK}}]\label{lem:T3}
+Let $f$ be real with $\lambda_3\le|f'''|\le h\lambda_3$ on $[a,b]$. Then $\sum_{a<n\le b}e(f(n))\ll h^{1/2}(b-a)\lambda_3^{1/6}+(b-a)^{1/2}\lambda_3^{-1/6}$.
+\end{lemma}
+
+We also use two standard facts, see \cite{Ti}: the truncated Perron formula and the convexity bound $\zeta(\sigma+it)\ll|t|^{(1-\sigma)/2+o(1)}$
+for $\frac12\le\sigma\le1$.
+
+\begin{remark}\label{rem:sources}
+We could not re-check theorem numbers in \cite{Ti}, \cite{Mo}, \cite{Iv} and \cite{GK} while writing. So the classical results are cited
+as standard, without numbers. The referee R2 confirmed that their statements are standard and correct. Lemmas~\ref{lem:GM1} and~\ref{lem:GM12}
+were checked against the arXiv text of \cite{GM}: both by R2 and the earlier writer for the $0.548$ version, and the full $\inf_k$ display again in
+phase~II (GA, and this writer). The statements from \cite{MT} were checked only through a
+summarising web tool (audit S2). An independent re-check (S3), also through such a tool, agrees.
+\end{remark}
+
+\section{The replacement for the Heath-Brown--Iwaniec lemma}\label{sec:L44}
+
+\subsection{Statement}
+Let $T=x^{\tau}$. Let $A(s)=\sum\alpha_nn^{-s}$ with $\alpha_n$ supported in $(N_A,2^{40}N_A]$ and $|\alpha_n|\le d_K(n)(\log 2n)^K$.
+Define $B$ in the same way with $\beta_m$ and $N_B$. Let $C(s)=\sum_{N_C<n\le2N_C}c_nn^{-s}$ with $c_n\equiv1$ or $c_n=\log n$. Write $N_A=x^a$,
+$N_B=x^b$, $N_C=x^c$ and $s_0=a+b+c$. Constants may depend on $K$.
+
+\begin{lemma}[Replacement for {\cite[Lemma~4.4]{MT}}]\label{lem:L44}
+Let $\tau\in[0.45,0.4565]$ and $s_0\in[1-2\cdot10^{-4},1+O(1/\log x)]$.
+\begin{enumerate}[label=(\arabic*),leftmargin=*]
+\item For all $a,b\ge0$ and $c>0$: $\int_{T_0}^{\min(N_C,T)}|ABC(\frac12+it)|\,dt\ll(N_AN_BN_C)^{1/2}(\log x)^{K_1}$.
+\item Suppose $c<\tau$, $a,b\in[0.087,0.4565)$ and $c\ge0.087$. Then
+\[\int_{N_C}^{T}|ABC(\tfrac12+it)|\,dt\ll(N_AN_BN_C)^{1/2}(\log x)^{K_2}.\]
+Moreover, the corner classes $\cQ$ are those level classes (\S\ref{sec:levels}) with $|A|\ge N_A^{1/2}x^{-0.02}$ and $|B|\ge N_B^{1/2}x^{-0.02}$.
+All other classes together contribute $\ll(N_AN_BN_C)^{1/2}x^{-10^{-5}}$.
+\end{enumerate}
+\end{lemma}
+
+Compared with the $0.548$ version, only the numbers change: there $\tau\le0.4521$, the lower length bound was $0.0958$ and the saving off the
+corner was $x^{-10^{-4}}$. The rest of this section proves the lemma.
+
+\subsection{Small $t$ and long $C$}\label{sec:short}
+
+\begin{lemma}\label{lem:Csmall}
+For $1\le t\le N_C$, $|C(\frac12+it)|\ll(\log x)N_C^{1/2}/t$.
+\end{lemma}
+\begin{proof}
+Apply Lemma~\ref{lem:T411} with $\sigma=\frac12$ at $y=N_C$ and at $y=2N_C$, and subtract. This gives
+$|C|\le 2(2N_C)^{1/2}/|\frac12-it|+O(N_C^{-1/2})$, and $N_C^{-1/2}\le N_C^{1/2}/t$. For $c_n=\log n$, use partial summation on the same
+identity over $(N_C,y]$ with $y\le2N_C$.
+\end{proof}
+
+\begin{proof}[Proof of \Lfp(1)]
+Let $U\in[T_0,\min(N_C,T)]$. The coefficients are divisor-bounded, so $\sum|\alpha_n|^2/n\ll(\log x)^{O(1)}$.
+Lemma~\ref{lem:Csmall}, Cauchy--Schwarz and Lemma~\ref{lem:MV} give
+\begin{align*}
+\int_U^{2U}|ABC|&\ll(\log x)^{O(1)}\frac{N_C^{1/2}}{U}(U+N_A)^{1/2}(U+N_B)^{1/2}\\
+&\ll(N_AN_BN_C)^{1/2}(\log x)^{O(1)}\Big(\frac1U+\frac{1}{(UN_A)^{1/2}}+\frac1{(UN_B)^{1/2}}+\frac1{(N_AN_B)^{1/2}}\Big).
+\end{align*}
+Each bracketed term is $\le1$. Summing over the $O(\log x)$ dyadic blocks proves (1). If $c\ge\tau$ the range in (2) is empty, so
+long $C$ needs nothing more.
+\end{proof}
+
+\subsection{Pointwise caps and the transfer from $\zeta$ to $C$}
+
+The trivial bound gives $|A(\frac12+it)|\ll N_A^{1/2}(\log x)^{O(1)}$, and likewise for $B$. For $t\ge1$, apply Lemma~\ref{lem:T3}
+to $f(n)=-\frac{t}{2\pi}\log n$ on dyadic ranges, then partial summation:
+\begin{equation}\label{eq:Ccap}
+|C(\tfrac12+it)|\ll(\log x)\big(t^{1/6}+N_C^{1/2}t^{-1/6}\big).
+\end{equation}
+
+\begin{lemma}[Transfer lemma]\label{lem:Z}
+If the $t_r\in[N_C,T]$ are $1$-separated, then $\sum_r|C(\frac12+it_r)|^4\ll T(\log x)^{12}$.
+\end{lemma}
+
+\begin{proof}
+Take $c_n\equiv1$ first, and fix $t\ge N_C\ge2$. Set $y_1=\lfloor N_C\rfloor+\frac12$, $y_2\in(\lfloor N_C\rfloor,\lfloor2N_C\rfloor]+\frac12$, $\kappa=\frac12+1/\log x$ and $U=2t$.
+Apply the truncated Perron formula at $y_1$ and at $y_2$ and subtract. Since $y_j\in\mathbb Z+\frac12$, the truncation error is
+$\ll N_C^{1/2}(\log x)/U\ll\log x$.
+
+Now move the contour to $\operatorname{Re}w=0$:
+\begin{itemize}[leftmargin=*]
+\item The pole of $\zeta(\frac12+it+w)$ at $w=\frac12-it$ contributes $\ll N_C^{1/2}/t\le1$.
+\item At $w=0$, $(y_2^w-y_1^w)/w$ is regular.
+\item By convexity the horizontal segments are $\ll(3t)^{1/4+o(1)}N_C^{1/2}/U\ll1$, using $t\ge N_C$.
+\end{itemize}
+On $\operatorname{Re}w=0$ we have $|y_2^{iv}-y_1^{iv}|/|v|\le k(v):=\min(\log3,2/|v|)$. Hence
+\[
+\Big|\sum_{N_C<n<y_2}n^{-1/2-it}\Big|\le\frac1{2\pi}\int_{-2t}^{2t}|\zeta(\tfrac12+i(t+v))|\,k(v)\,dv+O(\log x).
+\]
+The weight $\log n$ costs a factor $\ll\log x$, by partial summation in $y_2$. By H\"older, using $\int_{-2t}^{2t}k\ll\log x$,
+\[
+|C(\tfrac12+it)|^4\ll(\log x)^{4+3}\int_{-2t}^{2t}|\zeta(\tfrac12+i(t+v))|^4k(v)\,dv+(\log x)^{8}.
+\]
+For $1$-separated $t_r$, $\sum_rk(w-t_r)\ll\log x$ uniformly in $w$. Summing over $r$ and using Lemma~\ref{lem:Ing} on $[-T,3T]$ gives
+$\sum_r|C(\frac12+it_r)|^4\ll(\log x)^{8}\,T\log^4T+R(\log x)^8\ll T(\log x)^{12}$.
+\end{proof}
+
+The value of $\tau$ enters this proof only through $T\le x$; so Lemma~\ref{lem:Z}, like \eqref{eq:Ccap} and \Lfp(1), holds verbatim in the
+larger range of $\tau$ used here.
+
+\subsection{Discretisation and level classes}\label{sec:levels}
+
+Cover $[N_C,T]$ by the unit intervals $I_j=[N_C+j,N_C+j+1]$, $j\ge0$, starting at $N_C$. Let $t_j$ maximise $|ABC(\frac12+it)|$ on
+$I_j\cap[N_C,T]$, so every $t_j\in[N_C,T]$. Then $\int_{N_C}^T|ABC|\le\sum_j|ABC(\frac12+it_j)|$. The points with $j$ even, and those with
+$j$ odd, are each $1$-separated.
+
+Sort the points into dyadic classes $|A(\frac12+it_j)|\in(\frac12x^{\lambda_A},x^{\lambda_A}]$, and likewise $\lambda_B$ for $B$ and
+$\gamma$ for $C$. There are $O((\log x)^3)$ classes with all levels $\ge-\frac12$, plus three low classes, in which $|A|$, $|B|$ or $|C|$ is $\le x^{-1/2}$.
+Write $R=x^{\rho}$ for the number of points in a class and set
+\[
+E:=\rho+\lambda_A+\lambda_B+\gamma-s_0/2.
+\]
+A class contributes $\le x^{s_0/2+E}$, so it suffices to show $E\le-\eta+o(1)$ for every class.
+
+\emph{Clamping.} A class level may exceed its cap ($a/2$, $b/2$, or \eqref{eq:Ccap} for $C$) by $o(1)$, and $s_0$ may exceed $1$ by
+$O(1/\log x)$. We clamp each class's lower level to its cap, and $c$ to the end of its range. The count bounds stay valid, since they are
+non-increasing in $\lambda$. The exponent $E$ changes by $o(1)$, which the fixed margin absorbs.
+
+\emph{Low classes.} By the caps, $\lambda_A\le a/2+o(1)$, $\lambda_B\le b/2+o(1)$ and $\gamma\le c/2+o(1)$. If, say, $\lambda_A<-\frac12$, then
+$\rho\le\tau+o(1)$ gives $E\le\tau-\frac12-\frac a2+o(1)<0$.
+
+\emph{Normalisation.} Let
+\[
+\cX=\{A^k,B^k\ (k\le3),\ (AB)^k\ (k\le2),\ C^k\ (k\le6),\ AC,\ BC\}.
+\]
+Each $X\in\cX$ has length $x^{n_X}$. Its coefficients are $\ll d_{O(1)}(n)(\log x)^{O(1)}=x^{o(1)}$, and it is supported in $O(1)$ dyadic ranges.
+On a class, $|X|\ge x^{\lambda_X-o(1)}$, where $\lambda_X$ is the corresponding sum of levels (e.g.\ $\lambda_{AB}=\lambda_A+\lambda_B$).
+
+Pigeonhole a positive proportion of the points onto one dyadic piece $\sum_{n\sim N}c_nn^{-1/2-it}$. Rescale to
+$b_n=c_n(N/n)^{1/2}/\max|c_m|$, so that $|b_n|\le1$. Lemmas~\ref{lem:GM1}--\ref{lem:GM12} then apply with $V=N^{\sigma}$ and
+$\sigma=\frac12+\lambda_X/n_X-o(1)$.
+
+\emph{Box edges.} Lemma~\ref{lem:GM1} has no range hypotheses. Lemma~\ref{lem:GM12} needs $\sigma\ge7/10$ and $T^{5/6}\le N\le T$.
+The certificate uses it, in the form E3k of \S\ref{sec:counts}, only on boxes where these hold at the nominal exponents, with a strict slack in $\sigma$.
+\begin{itemize}[leftmargin=*]
+\item \emph{The $\sigma$-edge.} E3k is used only on boxes with $\lambda_0\ge n_1/5+10^{-6}$ (exact test). On such a box $\lambda\ge\lambda_0$, $n\le n_1$
+and $n_1<1$, so $\lambda/n\ge1/5+10^{-6}/n_1>1/5+10^{-6}$. Hence $\sigma=\frac12+\lambda_X/n_X-o(1)\ge7/10+10^{-6}-o(1)>7/10$ for $x$ large,
+uniformly, since the boxes are finitely many and fixed. No edge argument is needed. In fact the slack used is much larger: on every box
+where the certificate uses E3k, $\lambda_0-n_1/5\ge1571/2560000\approx6.1\cdot10^{-4}$ (measured by R4).
+\item \emph{Why a slack.} The $0.548$ version handled $\sigma\in[7/10-o(1),7/10)$ by switching to Lemma~\ref{lem:GM1}. That works for the closed
+form of Lemma~\ref{lem:GM12} but not for the $\inf_k$ display, which can be smaller than Lemma~\ref{lem:GM1} at $\sigma=7/10$: at $N=T$,
+Lemma~\ref{lem:GM1} gives $N^{4/5}$ while the $k=1$ term gives $N^{0.6}+N^{0.7}+N^{0.4}+N^{5.2/7}$ (found by GA, confirmed by R4).
+So that step is not used here.
+\item \emph{The lower $N$-edge} is automatic. E3k is used only where $n_0\ge5\tau_{\rm hi}/6$, so every dyadic piece has $N\ge x^{n_0}\ge T^{5/6}$.
+\item \emph{The upper $N$-edge.} If $N\in(T,2^{O(1)}T]$, apply Lemma~\ref{lem:GM12} with $T'=N$. Every power of $T$ in E3k has exponent in
+$[0,1]$, so the bound changes by a factor $O(1)$.
+\end{itemize}
+In each case the exponents move by $o(1)$, which the margin absorbs.
+
+\subsection{Count bounds and monotonicity}\label{sec:counts}
+
+Fix $X\in\cX$ with length exponent $n$ and level $\lambda>0$, and put $\sigma=\frac12+\lambda/n$. Up to $+o(1)$, the following hold.
+\begin{align*}
+\text{(E1, Lemma~\ref{lem:MV})}\quad&\rho\le\max(\tau,n)-2\lambda;\\
+\text{(E2, Lemma~\ref{lem:GM1})}\quad&\rho\le\max\big(n-2\lambda,\ \tfrac85n-4\lambda,\ \tau+\tfrac25n-4\lambda\big);\\
+\text{(E3k, Lemma~\ref{lem:GM12}, $k\ge1$)}\quad&\rho\le\max\Big(n-2\lambda,\ \tfrac\tau2+n-4\lambda,\ \tfrac{k}{k+1}(\tau+n-6\lambda),\
+\tfrac{4k}{4k+3}(2n-6\lambda)+\tfrac{2\tau}{4k+3}\Big)\\
+&\qquad\text{if }\tfrac56\tau\le n\le\tau\text{ and }\lambda\ge n/5+10^{-6}\text{, i.e.\ }\sigma\ge\tfrac7{10}+10^{-6}/n;\\
+\text{(E4, Lemma~\ref{lem:Z}, $X=C$)}\quad&\rho\le\tau-4\gamma;\qquad\text{and trivially}\quad\rho\le\tau.
+\end{align*}
+E3k is the first display of Lemma~\ref{lem:GM12} at a fixed $k$, written in exponents ($n=\log_xN$, $\tau=\log_xT$): since $\sigma n=n/2+\lambda$,
+we have $(2-2\sigma)n=n-2\lambda$, $(3-4\sigma)n=n-4\lambda$, $(4-6\sigma)n=n-6\lambda$ and $(5-6\sigma)n=2n-6\lambda$.
+The certificate uses $k=1,\dots,12$. The slack $10^{-6}$ in the hypothesis is the one explained under \emph{Box edges} (\S\ref{sec:levels}).
+The closed form of Lemma~\ref{lem:GM12} is not among these estimates.
+
+\emph{Monotonicity.} Every piece of E1, E2, E3k and E4 is non-decreasing in $n$ and in $\tau$ and non-increasing in $\lambda$. For E3k this is
+immediate, since each piece is linear: the coefficients of $n$ are $1,1,\frac{k}{k+1},\frac{8k}{4k+3}$, those of $\tau$ are
+$0,\frac12,\frac{k}{k+1},\frac{2}{4k+3}$, all $\ge0$, and those of $\lambda$ are negative. So on a box $n\in[n_0,n_1]$, $\lambda\ge\lambda_0$,
+$\tau\le\tau_{\rm hi}$, each estimate is at most its value at $(n_1,\lambda_0,\tau_{\rm hi})$. Also $\sup_{\rm box}\min_e\le\min_e\sup_{\rm box}$;
+in fact the certificate accepts a box on a single estimate, so no interchange of $\sup$ and $\min$ is needed (R4).
+
+\subsection{The corner classes}\label{sec:corner}
+
+Put $\delta_A=a/2-\lambda_A$ and $\delta_B=b/2-\lambda_B$. The corner classes are those with $\delta_A,\delta_B\le\kappa:=0.02$.
+
+\emph{Case $\min(a,b)\ge0.276$.} Apply Lemma~\ref{lem:HM} to $A$ with $c_n=\alpha_nn^{-1/2}$, so that
+$G:=\sum|c_n|^2\ll(\log x)^{O(1)}$, and take $V=\frac12N_A^{1/2}x^{-\delta_A}$.
+\begin{itemize}[leftmargin=*]
+\item $V^2\ge x^{a-2\kappa}/4\ge x^{0.236}/4$, which exceeds a large multiple of $GT^{1/2}\log T\le x^{0.22825+o(1)}$.
+\item So $R\ll GN_AV^{-2}\log T\ll(\log x)^{O(1)}x^{2\delta_A}$. The same argument for $B$ gives $R\ll(\log x)^{O(1)}x^{2\delta_B}$.
+\item Since $|C|\ll N_C^{1/2}\log x$, the class contributes
+$\ll(\log x)^{O(1)}x^{s_0/2+\min(2\delta_A,2\delta_B)-\delta_A-\delta_B}\le(\log x)^{O(1)}x^{s_0/2}$.
+\end{itemize}
+This is a loss of a power of $\log x$ only, with no power saving. In the application it is absorbed by Lemma~\ref{lem:VK}.
+This case works whenever $0.236>\tau/2$, i.e.\ for $\tau<0.472$.
+
+\emph{Case $\min(a,b)<0.276$.}
+\begin{itemize}[leftmargin=*]
+\item Here $c>1-2\cdot10^{-4}-0.276-0.4565=0.2673$.
+\item By \eqref{eq:Ccap}, $c/2-\gamma\ge\min(c/2-\tau/6,\,c/6)-o(1)\ge\min(0.0575,\,0.04455)-o(1)=0.04455-o(1)$.
+\item Lemma~\ref{lem:MV} applied to $AB$, of length $a+b>1-2\cdot10^{-4}-\tau>\tau$, gives $\rho\le2\delta_A+2\delta_B+o(1)$.
+\item Hence $E\le\delta_A+\delta_B-0.04455+o(1)\le2\kappa-0.04455+o(1)=-0.00455+o(1)$.
+\end{itemize}
+This case works whenever $(0.724-2\cdot10^{-4}-\tau)/6>2\kappa$ and $(0.724-2\cdot10^{-4}-\tau)/2-\tau/6>2\kappa$, i.e.\ for $\tau<0.483$.
+
+\subsection{The computer certificate}\label{sec:cert}
+
+All remaining classes are handled by the script\\ \texttt{numerics/certify\_exact\_k.py}\footnote{MD5 \texttt{8c4aded7ba48509ceafb3480a2be9bf3}. Invocation:\\
+{\footnotesize\texttt{TLO=0.45 THI=0.4565 MARGIN=0.00001 EPSP=0.0002 VSLACK=0.000001 MAXIT=150}}\\
+{\footnotesize\texttt{python3 certify\_exact\_k.py min0k\_noclosed 0.02}}: certified after 67 rounds (iterations 0--66), $331\,054$ leaves;
+log \texttt{numerics/run\_min0knc\_4565.out}.}.
+It is a branch-and-bound over boxes in $(a,b,\lambda_A,\lambda_B,\gamma)$, in exact rational arithmetic. It is the exact certifier
+\texttt{numerics/certify\_exact.py} of report X1 (MD5 \texttt{f083c952\dots}, unchanged and imported), with the estimates E3k added.
+According to R4's diff, nothing else changed: the tiling, the empty and corner tests, the caps, the tails and the acceptance test are X1's.
+One documentation slip: line~8 of the script's docstring describes the E3k validity test as $\lambda_0\ge n_1/5$, as for the closed form. The
+code also requires the slack, $\lambda_0\ge n_1/5+\texttt{VSLACK}$ with $\texttt{VSLACK}=10^{-6}$, which is the test stated here (R4, issue m2; the code is correct).
+
+\emph{Setup.}
+\begin{itemize}[leftmargin=*]
+\item On a box, $c$ ranges over $[1-a_1-b_1-2\cdot10^{-4},\,1-a_0-b_0]$, which covers $s_0\in[1-2\cdot10^{-4},1]$.
+\item $\tau\in[\tau_{\rm lo},\tau_{\rm hi}]=[9/20,913/2000]$ is treated uniformly, and every bound uses $\tau_{\rm hi}$. The range conditions of E3k are checked as
+$n_1\le\tau_{\rm lo}$, $n_0\ge5\tau_{\rm hi}/6$ and $\lambda_0\ge n_1/5+10^{-6}$ (\S\ref{sec:levels}).
+\item The initial boxes are $(a,b)$-cells of width $1/50$ starting at $1-2\tau_{\rm hi}=0.087$, with $a\le b$ by symmetry, together with
+$\lambda_A\in[-\frac12,a_1/2]$, $\lambda_B\in[-\frac12,b_1/2]$ and $\gamma\in[-\frac12,\frac12]$.
+\end{itemize}
+
+\emph{The test on each box.}
+\begin{itemize}[leftmargin=*]
+\item $\bar\rho$ is the minimum, over $X\in\cX$ and over E1, E2, E3k ($k\le12$), E4 and the trivial bound, of the box suprema from \S\ref{sec:counts}. These are evaluated at the
+lower level ends. A polynomial whose level lower end is $\le0$ is not used.
+\item The contribution exponent uses the upper ends of the level ranges. These are capped by $a_1/2$ and $b_1/2$, and for $C$ by
+\[\min(c_1/2,\max(\tau_{\rm hi}/6,c_1/3)).\]
+\item The box is certified if
+$E_{\rm box}:=\max(\bar\rho,0)+\bar u_A+\bar u_B+\bar u_C-(1-2\cdot10^{-4})/2\le-10^{-5}$.
+\end{itemize}
+
+\emph{Exempt boxes.} Two kinds of boxes are not tested:
+\begin{itemize}[leftmargin=*]
+\item empty boxes, where a level exceeds its cap or $a,b<\tau_{\rm hi}$, $0.087\le c<\tau$ fails;
+\item boxes inside $\cQ$, which \S\ref{sec:corner} covers.
+\end{itemize}
+
+\emph{The run.} Floats only decide which boxes to try and in what order; every leaf is accepted only after an exact test. Uncertified boxes
+are bisected along their widest weighted side.
+\begin{itemize}[leftmargin=*]
+\item The run ends with no uncertified box after 67 rounds (iterations 0--66). The leaves tile the domain exactly: $331\,054$ leaves, namely $807$ empty, $3\,310$ in
+the corner region and $326\,937$ certified.
+\item The largest certified value is $E_{\rm box}\le-18999/1884160000\approx-1.008\cdot10^{-5}$. It sits on the five-factor box,
+$(a,b)\approx(0.400,0.400)$, $\gamma\approx0.0434$.
+\item The low classes (some level $<-\frac12$) are certified in closed form, with $E\le-9779/60000\approx-0.163$ and $E\le-869/10000$.
+\item Among the $\inf_k$ terms, $k=5$ and $k=4$ win most often. This agrees with the five-factor analysis, which uses $k=5$.
+\item \emph{Independent re-verification} (R4). The certifier stores no leaves, so its soundness rests on re-running it. The referee R4 therefore wrote
+\nolinkurl{rounds/round2/R4_scripts/r4_verify.py} (MD5 \texttt{471a01049eeb3af168806a92bce61ec6}). It records every accepted leaf of the
+\texttt{min0k\_noclosed} run and re-checks it with independently written code that does not call the certifier's evaluation functions:
+\begin{itemize}[leftmargin=*]
+\item the bounds are written in $\sigma$-form, directly from the cited statements;
+\item box suprema are taken by enumerating the vertices $\{n_0,n_1\}\times\{\lambda_0,\lambda_1\}\times\{\tau_{\rm lo},\tau_{\rm hi}\}$. This is valid because
+each candidate is a maximum of affine functions, and it does not rely on the monotonicity claim of \S\ref{sec:counts};
+\item the E3k hypotheses are checked with strict $\sigma>7/10$;
+\item the empty and corner tests, the caps and the acceptance test are recomputed;
+\item the exact total volume of the leaves is checked to equal that of the initial cells, so no box is lost.
+\end{itemize}
+Result: $331\,054$ leaves at $\tau_{\rm hi}=913/2000$ and $586\,580$ at $\tau_{\rm hi}=114173/250000=0.456692$, with $0$ failures and with
+equal volumes in both runs. The maxima agree with the certifier's. Usage: run it with \texttt{PYTHONPATH=numerics} from a scratch directory, since it writes a JSON file.
+\item \emph{Re-runs.} R4 re-ran the certifier for \texttt{min0k\_noclosed} and \texttt{min0k} at $913/2000$ and for \texttt{min0k\_noclosed} at
+$0.456692$, and obtained bit-identical leaf counts. The writer of this note also re-ran the headline invocation from fresh copies of the three
+scripts (same MD5 sums), in a separate directory. It reproduced the same leaf counts and the same maximum.
+\item Rigour of the box bounds: they follow from the monotonicity in \S\ref{sec:counts}. Since there are finitely many boxes, the $o(1)$ terms are
+absorbed by the fixed margin $10^{-5}$. Levels are clamped to their caps as in \S\ref{sec:levels}.
+\item Scope: the run checks only the arithmetic of the box bounds, given E1--E4, the caps and the corner lemma of \S\ref{sec:corner}.
+\end{itemize}
+
+\emph{Inputs actually used.} The run is called \texttt{min0k\_noclosed}. Its inputs are MVT, Lemma~\ref{lem:GM1}, the $\inf_k$ display of
+Lemma~\ref{lem:GM12} ($k\le12$) and Lemma~\ref{lem:Z}. The following are \emph{not} used: the closed form of Lemma~\ref{lem:GM12}, Huxley's
+estimate, Jutila's estimate, the twelfth moment, Bourgain's bound for $\zeta$, and Vinogradov--Korobov for $C$.
+
+\emph{Cross-checks and sanity runs} (same code and settings). None of these is used in the proof.
+\begin{itemize}[leftmargin=*]
+\item \texttt{min0k} adds the closed form of Lemma~\ref{lem:GM12}, with its old test $\lambda_0\ge n_1/5$; for the closed form alone, the
+$\sigma$-edge step of the $0.548$ version is valid. Result: certified, $330\,937$ leaves. Adding the full input set of the earlier code as well
+(\texttt{fullk}): certified, $310\,004$ leaves. Both take 67 rounds.
+\item Regression: with the old input set \texttt{min0} at $\tau_{\rm hi}=0.4521$, the new code reproduces the tiling of the $0.548$ version
+exactly ($98\,433$ leaves: $661$ empty, $2\,432$ corner, $95\,340$ certified).
+\item In every run, the float mirror of the new code agrees with the float code of the $0.548$ version on all old estimates, with maximum
+difference $0.0$. That code is \nolinkurl{numerics/certify_548.py} (MD5 \texttt{4d0afc03\dots}).
+\item The sanity run of the $0.548$ version failed at $\vartheta=0.5435$, with $\max E=+0.0019$ at $(a,b,c)=(0.4,0.4,0.2)$. That run used the
+closed form of Lemma~\ref{lem:GM12}. With the closed form, the five-factor box closes only for $\vartheta>0.5437644$ (\S\ref{sec:limits}). The
+present certificate, with the $\inf_k$ display, supersedes it.
+\item The control run at $\vartheta=0.5433<69/127$ fails (Remark~\ref{rem:543308}).
+\item In the $0.548$ version, a run without Lemma~\ref{lem:Z} failed at $(\frac13,\frac13,\frac13)$ by $+0.025$. So the transfer of the fourth
+moment from $\zeta$ to $C$ is essential.
+\end{itemize}
+
+This completes the proof of \Lfp: the corner classes are handled in \S\ref{sec:corner} and all others by the certificate.\qed
+
+\section{Proof of Theorem~\ref{thm:main}}\label{sec:proof}
+
+\emph{Parameters.} Let $\vartheta>0.5435$ and $\e_0>0$. We may assume $\vartheta\le0.55$, since for $\vartheta>0.55$ the claim is
+\cite[Theorem~1.1]{MT}.
+\begin{itemize}[leftmargin=*]
+\item First fix $\e:=\min(\e_0,(\vartheta-0.5435)/4,10^{-4})$ and $\theta:=\vartheta-\e$. Then $\theta\in[0.5435+3\e,0.55-\e]$. These depend only on
+$\vartheta$ and $\e_0$, not on $H$. (The $0.548$ version divided by $2$; dividing by $4$ keeps $b$ strictly below $0.4565$, see below.)
+\item Then, as in \cite[\S4.1]{MT}, split the sum into short sums. This reduces the theorem to intervals $(y,y+H']$ with $y\ge x$ and
+$H'\in[y^{\theta+\e},2y^{\theta+\e}]\subset[y^{\e},y]$, where Lemma~\ref{lem:ramare} applies. This holds also when $H>x$. We write $x,H$ for $y,H'$.
+\end{itemize} Run MT's argument (\S\ref{sec:red}) with these $\theta,\e$. By Lemma~\ref{lem:ramare} the saving is $(\log x)^{-1/3+\e}$, and
+$\e\le\e_0$. By Lemma~\ref{lem:perron} it suffices to prove \eqref{eq:L1} for each configuration \eqref{eq:config}. The upper limit of
+integration is $T=x^{1+\e/10}/H\le x^{\tau}$ with $\tau:=1-\theta-0.9\e=1-\vartheta+0.1\e\in[0.45,0.4565)$.
+
+\emph{Removing $P$ and $R$.} Factors with $N_i<2$ have at most three terms and are $O(1)$; drop them. Write $N_i=x^{\alpha_i}$ and $s_0=\sum\alpha_i$. Then
+$s_0\in[1-\e/2-o(1),1+O(1/\log x)]$, because $R\le x^{\e/2}$ and $P_1=x^{o(1)}$. In particular $s_0\ge1-2\cdot10^{-4}$. We have:
+\begin{itemize}[leftmargin=*]
+\item $|P(\frac12+it)|\ll_AP_1^{1/2}(\log x)^{-A}$ on $[T_0,T]$, by Lemma~\ref{lem:VK};
+\item $|R(\frac12+it)|\ll R^{1/2}(\log x)^{O(1)}$, trivially;
+\item $P_1R\,x^{s_0}\asymp x$.
+\end{itemize}
+So it suffices to show $\int_{T_0}^T|N_1\cdots N_{2k-1}(\frac12+it)|dt\ll x^{s_0/2}(\log x)^{O(1)}$.
+
+\emph{Type II.} Let $w_1=1-\theta$ and $w_2=\theta-\e$. Suppose some subsum $\sum_I\alpha_i\in[w_1,w_2]$. Then $X_I\ge x^{1-\theta}\ge T$ and
+$X_{I^c}\ge x^{s_0-\theta+\e}\ge x^{1-\theta}\ge T$, and Lemma~\ref{lem:typeII} applies.
+
+\emph{Otherwise.} Apply Lemma~\ref{lem:comb} (note $s_0>w_2$). This gives $I$, $r$ and $J$ with
+\begin{gather*}
+a:=\textstyle\sum_I\alpha_i<1-\theta=1-\vartheta+\e<0.4565,\qquad c:=\alpha_r>2\theta-1-\e\ge0.087+5\e>0.087,\\
+b:=\textstyle\sum_J\alpha_j<s_0-w_2\le1-\vartheta+2\e+O(1/\log x)\le0.4565-\tfrac12(\vartheta-0.5435)+O(1/\log x).
+\end{gather*}
+\begin{itemize}[leftmargin=*]
+\item Since $c>1/20+o(1)$ and the M\"obius-type factors have length $\le(2x)^{1/20}$, the factor $N_r$ is smooth: $r\le k-1$.
+\item Put $A=\prod_IN_i$, $B=\prod_JN_j$ and $C=N_r$. These satisfy the hypotheses of \S\ref{sec:L44} with $K=40$.
+\item Lemma~\ref{lem:L44}(1) covers $[T_0,\min(N_C,T)]$.
+\item If $c<\tau$, Lemma~\ref{lem:L44}(2) covers $[N_C,T]$. Its hypotheses hold:
+\begin{itemize}[leftmargin=*]
+\item $a>w_2-c>\theta-\e-\tau=2\theta-1-0.1\e\ge0.087+5.9\e>0.087$;
+\item $b>s_0-w_1-\tau\ge2\theta-1+0.4\e-o(1)\ge0.087$;
+\item $a<0.4565$; $b<0.4565$ for $x$ large, by the display above; and $0.087\le c<\tau$.
+\end{itemize}
+\end{itemize}
+In every case the integral is $\ll x^{s_0/2}(\log x)^{O(1)}$. Combined with the factor $(\log x)^{-A}$ from $P$, this gives \eqref{eq:L1}, and
+Theorem~\ref{thm:main} follows. We never use Lemma~4.4 of \cite{MT}.\qed
+
+\begin{remark}[Closer to $69/127$]\label{rem:543308}
+The same proof gives Theorem~\ref{thm:main} for somewhat smaller $\vartheta$, at the price of smaller margins. We keep the headline at
+$0.5435$, where the margin is $10^{-5}$. Each item below uses the same code, input set \texttt{min0k\_noclosed} (also certified with \texttt{min0k}), $\kappa=1/50$,
+and the corner lemma, which holds for $\tau<0.472$.
+\begin{itemize}[leftmargin=*]
+\item $\vartheta>0.5434$: $\tau_{\rm hi}=2283/5000$, \texttt{EPSP}$\,=10^{-4}$, margin $10^{-5}$ and $\e:=\min(\e_0,(\vartheta-0.5434)/4,10^{-4})$.
+This \texttt{EPSP} is valid, since $s_0\ge1-\e/2-o(1)>1-10^{-4}$. The lower length bound is $0.0868$. Certified after 76 rounds with $388\,691$ leaves
+($388\,580$ for \texttt{min0k}). Corner case (ii): $c>0.2673$.
+\item $\vartheta>0.543308=69/127+9.1\cdot10^{-7}$: $\tau_{\rm hi}=114173/250000=0.456692$, \texttt{EPSP}$\,=2\cdot10^{-7}$, margin $3\cdot10^{-7}$,
+$\sigma$-slack $10^{-7}$, and $\e:=\min(\e_0,(\vartheta-0.543308)/4,10^{-7})$, so that $s_0>1-2\cdot10^{-7}$. The lower length bound is $0.086616$.
+Certified after 103 rounds with $586\,580$ leaves ($828$ empty, $3\,207$ corner, $582\,545$ certified); $586\,479$ for \texttt{min0k}.
+The invocation is that of the footnote in \S\ref{sec:cert} with \texttt{THI=0.456692}, \texttt{MARGIN=0.0000003}, \texttt{EPSP=0.0000002} and
+\texttt{VSLACK=0.0000001}. The largest certified value is $E_{\rm box}\le-4565757/15073280000000\approx-3.03\cdot10^{-7}$, and the slack used for E3k is at least
+$\lambda_0-n_1/5\ge1.38\cdot10^{-3}$ (R4).
+Corner lemma: $0.236>\tau/2=0.228346$; in case (ii), $c>0.267308$ and $c/6>0.04455>2\kappa$.
+\item Runs at $\tau_{\rm hi}=0.45665$, $0.45668$ and $0.45669$ (\texttt{EPSP} $2\cdot10^{-5}$, $4\cdot10^{-6}$, $10^{-6}$) are also certified.
+\item \emph{Control.} At $\tau_{\rm hi}=0.4567$, i.e.\ $\vartheta=0.5433<69/127$, with \texttt{EPSP}, margin and slack all $10^{-7}$, the run is not certified.
+The number of open boxes doubled every round, and the run was stopped after round 84 with $317\,127$ open boxes and float maximum $E=+10^{-5}$.
+An exact pointwise evaluation at $(a,b,c)=(0.4,0.4,0.2)$, $\sigma_A=\sigma_B=0.716525$, $\gamma=0.043303$ and $\tau=0.4567$ gives $E=+3\cdot10^{-6}>0$.
+So the model itself fails there, and the certificate is not vacuous.
+\item $69/127$ itself cannot be reached this way. At the binding point the slack is about $58/127-\tau_{\rm hi}$, so the margins would have to tend to $0$.
+\end{itemize}
+These extensions have the same status as Theorem~\ref{thm:main}. The referee R4 checked them as well: the corner numbers and the $\e\le10^{-7}$ bookkeeping
+at $0.456692$, a re-run, and the leaf-by-leaf re-verification of \S\ref{sec:cert}. R4 recommends keeping them as a remark rather than in the theorem.
+\end{remark}
+
+\section{Limits of the method}\label{sec:limits}
+
+The headline exponent $0.5435$ lies $1.9\cdot10^{-4}$ above $69/127=0.5433071\ldots$. Remark~\ref{rem:543308} reduces the gap to
+$9.1\cdot10^{-7}$. Below $69/127$ the method itself fails, for the reason explained next.
+
+\emph{Five smooth factors.} The configuration $N_1=\dots=N_5=x^{1/5}$ with smooth coefficients has no subsum in $[1-\theta,\theta]$
+for $\theta<3/5$. So it must be handled as $A=N_1N_2$, $B=N_3N_4$, $C=N_5$, i.e.\ $(a,b,c)=(0.4,0.4,0.2)$. The maximum of the certificate and the
+failing control run both sit at this point. Internal report P2 treats this configuration; an internal referee (R1) judged it correct with
+fixable issues. Report PB1 (phase~II) recomputed the binding point in exact rational arithmetic.
+\begin{itemize}[leftmargin=*]
+\item The inputs are: MVT, Lemma~\ref{lem:T411}, the cap \eqref{eq:Ccap}, the fourth-moment bound for the fifth factor, and the $\inf_k$ form of Lemma~\ref{lem:GM12} with $k=5$.
+With these inputs the five-factor case closes exactly when $\vartheta>69/127=0.5433071\ldots$, i.e.\ $\tau<58/127$.
+\item At $\vartheta=69/127$ the pair products $N_iN_j$ have length $x^{2/5}\approx T^{0.88}$, the binding level is $\sigma=91/127$, each
+$|N_i|$ has size $x^{11/254}$, and the number of points must stay below $x^{36/127}$. Two bounds equal $36/127$ exactly: MVT for a pair,
+equivalently Lemma~\ref{lem:Z} for $N_5$; and the part $N^{(5-6\sigma)20/23}T^{2/23}$ of the $k=5$ term. The term $T^{1/2}N^{3-4\sigma}$ gives $179/635$,
+only $1/635\approx0.0016$ lower. (The writer re-derived these values by hand from E1, E3k and E4.)
+\item With the closed form of Lemma~\ref{lem:GM12} instead, the threshold is $\vartheta>0.5437644$, where $\tau=1-\vartheta$ is the smaller root of
+$30\tau^2-32.8\tau+8.72=0$. This is why the $0.548$ version, which used the closed form, failed at $0.5435$ in its sanity run.
+\end{itemize}
+
+\emph{Independent certification.} Internal report P4 used code written independently of P3's. It certified the generic level-set model, with $A,B$ arbitrary
+and $C$ smooth. Its inputs were MVT, Huxley, Lemma~\ref{lem:GM1}, the $\inf_k$ form of Lemma~\ref{lem:GM12} ($k\le8$), Jutila ($k=3$),
+the fourth and twelfth \cite{HB} moments of $\zeta$, and Bourgain's bound \cite{Bo}. The results are in Table~\ref{tab:p4}.
+\begin{itemize}[leftmargin=*]
+\item $\vartheta=0.5432$ was not certified within the box budget. This agrees with the exact certificate of \S\ref{sec:cert}, which passes at $0.5434$ and fails at $0.5433$.
+\item With pre-Guth--Maynard inputs only (MVT, Huxley, Jutila), the same code certifies $0.552$ and fails at $0.548$. This is consistent with the exponent
+$0.55$ of \cite{MT}.
+\item P4 certifies only the level-set model. Its reduction to the top $t$-scale and its corner argument, via Huxley in Hal\'asz form, were argued by hand and
+classed as routine.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+$\vartheta$ & $0.548$ & $0.545$ & $0.544$ & $0.5438$ & $0.5435$ & $0.5434$\\
+\midrule
+certified margin $\eta$ & $10^{-3}$ & $10^{-3}$ & $3\cdot10^{-4}$ & $3\cdot10^{-4}$ & $10^{-4}$ & $3\cdot10^{-5}$\\
+boxes & 12\,164 & 30\,298 & 33\,477 & 39\,149 & 43\,639 & 46\,242\\
+\bottomrule
+\end{tabular}
+\caption{Independent certification of the level-set model (report P4, \texttt{numerics/p4\_check.py}).}\label{tab:p4}
+\end{table}
+
+\emph{What blocks $69/127$: findings of phase~II.} The statements below are model computations and structural observations from internal
+reports (PB1, PB2, PC1, SC5, DR4, S4). Unless marked, they were not re-derived by the writer, and they are not theorems.
+\begin{enumerate}[label=(\alph*),leftmargin=*]
+\item \emph{Reduction to one zeta segment} (PB1, and independently the control agent PC1, which had no access to the project's idea registry).
+Take all five smooth factors in the same dyadic block. This is a legitimate configuration of \eqref{eq:config}. Then $N_1=\dots=N_5=S_N$, a
+single segment $S_N(s)=\sum_{n\sim N}n^{-s}$ with $N\asymp x^{1/5}$, and $T=N^{5(1-\vartheta)}$. What is needed is
+\[
+\int_{T_0}^{T}|S_N(\tfrac12+it)|^5\,dt\ll N^{5/2}(\log N)^{B}.
+\]
+So below $69/127$ the problem contains a fifth-moment problem for one segment of $\zeta$. In large-values language (notation of the ANTEDB \cite{TTY}), PB1
+reports that going below $69/127$ needs $\mathrm{LV}_\zeta(\sigma,2.3)<5-5\sigma$ for $\sigma\in(0.70,0.72]$. The record values it lists are
+$1.48$, $1.46$ and $1.435$ at $\sigma=0.705$, $0.71$ and $0.715$, against targets $1.475$, $1.45$ and $1.425$. So one would need to beat the record
+by $0.005$--$0.010$. This is the obstacle O4sym of the project database.
+\item \emph{The joint route is refuted} (PB1, SC5). The 0.548 version suggested a first-moment bound
+$\sum_{t\in S_A(\sigma)}|C(\frac12+it)|\lessapprox|S_A(\sigma)|$ for $C$ on the large-value set $S_A(\sigma)$ of $A$; this would close the
+five-factor family for every $\vartheta>1/2$. In the equal-segment configuration, however, $A=N_1N_2=C^2$. So $A$ is large exactly where $C$ is
+large, and the bound would force a pointwise bound of about $T^{0.065}$ for a zeta segment, whereas the best known is about $T^{0.155}$ (cf.\
+\cite{Bo}). This also explains why an experiment at $x=10^{10}$ found $|C|$ systematically larger on $S_A(\sigma)$. The observation came from
+the project's set E9 (joint large values of $A$ and $C$).
+\item \emph{Additive energy inside the Guth--Maynard method} (PB2). In the proof of \cite[Proposition~12.1]{GM}, the $k$-dependent terms arise
+from one sum (called $S_2$ in report PB2). Even if an additive-energy input removed these terms entirely, the model frontier would be
+$19/35=0.542857$. It is a quadruple point at $\sigma=5/7$, where MVT, the generic term $N^{5-6\sigma}$, the term $T^{1/2}N^{3-4\sigma}$
+and the requirement meet; $19/35$ solves $5\vartheta-2=1-5(1-\vartheta)/8$. So this route gains at most $69/127-19/35\approx0.00045$. Below
+$19/35$ no value of the energy helps, and the energy is not binding at $69/127$.
+\item \emph{Range of $\sigma$} (obstacle O2a, from the $0.548$ version). Below $\approx0.5433$ the relevant range of $\sigma$ extends below $7/10$,
+outside Proposition~12.1. In a sampled version of the model, Montgomery's large values conjecture on $\sigma\in[0.70,0.73]$ alone gains only
+about $0.004$. The full large values conjecture would push the model to $\vartheta\to1/2$, apart from the corners.
+\item \emph{Priced targets} (entry N7 of the project database; reports PB2, DR4, S4 and PC1). Table~\ref{tab:prices} lists what some
+hypothetical inputs would give in the model. These are prices, not results.
+\end{enumerate}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+hypothetical input (exponent model) & effect on the threshold\\
+\midrule
+none (this note) & $69/127=0.54331$\\
+$k$-dependent terms of GM's $S_2$ removed (best case of an energy input) & $19/35=0.54286$\\
+a large values bound at the binding level beating the fourth-moment level by $T^{-0.002}$ & $0.5424$\\
+\quad the same with $T^{-0.005}$ & $0.5410$\\
+\quad the same with $T^{-0.01}$ & $0.5389$\\
+MVT for pairs of segments improved by $T^{-0.0117}$ & $0.5382$\\
+sixth moment of $\zeta$ on $\{|\zeta|\ge T^{\beta}\}$ bounded by $T^{1+o(1)}$ down to $\beta=0.09$ & gain $0.0033$\\
+full sixth moment $\int_0^T|\zeta(\frac12+it)|^6dt\ll T^{1+o(1)}$ & gain $0.0165$\\
+\bottomrule
+\end{tabular}
+\caption{Model prices for going below $69/127$ (internal reports; not theorems). For the restricted sixth moment, the bound is known with
+$\beta=11/72$ \cite{TTY}.}\label{tab:prices}
+\end{table}
+
+\subsection{Below $69/127$: a refereed reduction}\label{sec:sub542}
+The following result (SUB542) comes from report GA2. It was refereed by R5 with verdict \emph{accept with corrections} (one definitional
+correction, M1, and two minor ones, m2 and m3). We state it in R5's corrected form. It is a reduction, not an improvement of
+Theorem~\ref{thm:main}: the residual family contains the five-factor configuration that blocks $69/127$.
+
+\begin{proposition}[SUB542]\label{prop:sub542}
+Let $\theta=0.542$, $\tau_{\rm hi}=0.458$ and $\mathrm{LOW}=1-2\tau_{\rm hi}=0.084$, and put
+$\mathrm{NE}[R]:=\{(a,b):\max(|a-0.4|,|b-0.4|)\le R\}$.
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item The conclusion of \Lfp(2), with $\tau\in[0.45,0.458]$, $s_0\ge1-10^{-4}$, $a,b\in(0.084,0.458)$ and $0.084<c<\tau$, holds for every
+triple with $(a,b)\notin\mathrm{NE}[0.0075]$. The proof is an exact certificate: the code of \S\ref{sec:cert}, changed only so that boxes
+contained in the closed box $\mathrm{NE}[0.0075]$ are set aside as ``excluded'' and never counted as certified
+(\nolinkurl{numerics/certify_exact_k_sub.py}, MD5 \texttt{00767d5a\dots}; \texttt{EPSP}$\,=10^{-4}$, margin $10^{-5}$, slack $10^{-6}$, $\kappa=1/50$).
+With \texttt{min0k} it uses $425\,506$ leaves ($698$ empty, $2\,835$ corner, $418\,542$ certified, $3\,431$ excluded) in 65 rounds, with largest
+certified value $-13/1280000$. Without the closed form (\texttt{min0k\_noclosed}) it uses $425\,560$ leaves. R5 re-ran both runs; the first is
+bit-identical to GA2's log.
+\item Consequently, for $\vartheta\in(0.542,0.55]$ and $\e:=\min(\e_0,(\vartheta-0.542)/4,10^{-4})$, the argument of \S\ref{sec:proof} closes every
+configuration \eqref{eq:config} except those in the residual set $\mathrm{Res}$. A configuration is in $\mathrm{Res}$ if it has no subsum in
+$[1-\theta,\theta-\e]$, every smooth factor has length $<\tau$, and every admissible split $(a,b,c)$ satisfies $(a,b)\in\mathrm{NE}[0.0075]$.
+Configurations with a smooth factor of length $\ge\tau$ are closed by \Lfp(1); this is R5's correction M1. For $\alpha\in\mathrm{Res}$ the MT split of
+\S\ref{sec:proof} exists and is admissible. Hence Theorem~1.1 of \cite{MT} for every $\vartheta>0.542$ reduces to \Lfp(2) on the near-equal family
+$\mathrm{NE}[0.0075]$.
+\end{enumerate}
+\end{proposition}
+
+\emph{The residual family} (R5). A configuration in $\mathrm{Res}$ has a smooth factor $C$ of length $c\in[0.185-\e/2-o(1),\,0.215+o(1)]$
+and two groups $A,B$ of total lengths $0.4\pm0.0075$. No factor in $A$ or $B$ has length in $(0.015,\theta-\e-b]$, an interval which contains
+$(0.015,0.1345]$. For exactly five smooth factors of lengths $0.2+\delta_i$, the configuration is open if and only if $|\delta_i+\delta_j|\le0.0075$ for
+all $i\ne j$. This forces $|\delta_i|\le4R/3+O(\e)=0.01$. R5 proved this criterion in general and checked it by brute force on $40\,000$ random
+configurations, with no mismatch.
+
+GA2 also certified the analogous statements with $R=0.0125$ at $\theta=0.541$ ($655\,573$ leaves) and with $R=0.02$ at $\theta=0.540$
+($532\,758$ leaves). These two runs were not re-run by the referee.
+
+\emph{What the remaining case needs.} The following are model-level analyses from internal reports (entries O4sym, PC3-EQ, PB4-F and BB-MAP
+of the project database), not theorems.
+\begin{itemize}[leftmargin=*]
+\item The residual case is the equal-segment problem of item~(a) above. The one live target is to beat the MVT (fourth-moment) count by a power
+$T^{-\delta}$ for products of two smooth segments of length $x^{1/5}$ at $\sigma\in[0.709,0.717]$. A restricted moment of order about $4.03$
+($4.08$ at $\theta=0.540$) would suffice; the sixth moment is not needed.
+\item For uniform slices, the control agent PC3 finds this equivalent, up to $T^{\e}$, to improving Ingham's large values bound for $\zeta$ itself.
+That bound gives $\ll T^{1-4v+o(1)}$ points with $|\zeta(\frac12+it)|\ge T^{v}$, and the relevant heights are $T^{v}$ with $v\in[0.0909,0.0952]$, i.e.\
+$T^{0.09\text{--}0.095}$. No such improvement is known to us; PC3 states this from memory, unchecked.
+\item A multi-scale, Euler-product coherence statement would suffice (PB3-ITE). It says: if $|S_N(\frac12+it)|\ge V=T^{v}$, then some segment
+$S_{N'}$ with $N'\le T^{1/3}$ has $|S_{N'}(\frac12+it')|\ge V^{1-\delta_I}$ at a point with $|t-t'|\le2$. With $k=4$ and $\delta_I\le0.496$ it would give
+$\vartheta^*\approx0.540$ (PB4).
+\item The statement is strongly supported by numerics: the median of $1-\delta_I$ is $0.95$--$0.96$ for $N=100$--$316$ and $T\le5.6\cdot10^5$, though
+only at the scale of typical fluctuations. It follows from the Lindel\"of hypothesis, but no unconditional proof is known. The obvious route
+through the approximate functional equation is circular (PB3).
+\end{itemize}
+
+\section{Provenance and status}\label{sec:prov}
+
+This note was produced by an automated multi-agent proof search run by Claude (Anthropic). It followed a strategy
+co-authored by Siddharth Iyer. It is the phase~II version of a note that proved the same statement for $\vartheta>0.548$.
+
+\emph{Sources.} The mathematics comes from internal reports, written and checked by separate agents. Phase~I: the audit of \cite{MT} (S2) and
+its re-check (S3); the five-factor lemma (P2, refereed by R1); the general \Lfp\ and the assembly (P3, refereed by R2); the exact-arithmetic
+certificate (X1); and the independent certification (P4). Phase~II: report GA (the $\inf_k$ estimate, the certificate
+\texttt{certify\_exact\_k.py}, the box-edge correction, the corner numbers at the new $\tau$, and the parameter choice); and the limit analyses PB1,
+PB2, PC1 (control), SC5, DR4 and S4. Later phase~II rounds contributed the following:
+\begin{itemize}[leftmargin=*]
+\item GA2, the sub-family certificate of \S\ref{sec:sub542}, refereed by R5;
+\item PB3, PB4, PC3 (control) and BB, the analyses quoted at the end of \S\ref{sec:limits}.
+\end{itemize}
+The writer of this note (W2) collated these reports. The writer also re-derived by hand: the exponent form
+of the $\inf_k$ display and its monotonicity; the $\sigma$-slack of the box edges and the counterexample to the old edge argument; the corner
+numbers; the parameter inequalities of \S\ref{sec:proof}; and the values at the five-factor binding point. The writer re-ran the headline
+certificate and obtained the same result. Statements that the reports do not support were omitted or are marked above.
+
+\emph{Refereeing.} The $0.548$ version: an independent agent (R2), who did not write the proof, refereed the proofs of \Lfp\ and of the
+theorem. R2 re-ran the float certificate and checked Lemmas~\ref{lem:GM1} and~\ref{lem:GM12} against the arXiv text of \cite{GM}. Its
+verdict was \emph{correct with minor fixable issues}. There were eight issues, all addressed: clamping to the caps; a numerical slip; fixing
+$\theta$ before splitting $H$; the move of the Vinogradov--Korobov bound to $\operatorname{Re}s=\frac12$; log powers in Lemma~\ref{lem:Z};
+theorem numbers; reproducibility of a float run; and an optional exact rerun, done by X1. A fresh-eyes referee (R3) then read that note; its
+minor issues were applied. The phase~II changes are:
+\begin{enumerate}[label=(\arabic*),leftmargin=*]
+\item the $\inf_k$ display of Lemma~\ref{lem:GM12} as an input (E3k);
+\item the box-edge argument: the old $\sigma$-edge step is invalid for E3k and is replaced by the strict slack;
+\item the new certificate (\S\ref{sec:cert}) and Remark~\ref{rem:543308};
+\item the corner numbers and the range of \Lfp;
+\item the parameter choice $\e\le(\vartheta-0.5435)/4$.
+\end{enumerate}
+They were refereed by an independent agent (R4), who did not write them.
+
+\smallskip
+\noindent\textbf{Referee R4.} Verdict: \emph{accept}, with no blocking or major issues. R4 found that \Lfp\ holds for
+$\tau\in[0.45,0.4565]$ and that Theorem~\ref{thm:main} follows; it also accepted Remark~\ref{rem:543308} and recommended keeping it as a remark.
+In detail, R4:
+\begin{itemize}[leftmargin=*]
+\item read the $\inf_k$ display of \cite[Proposition~12.1]{GM} in the arXiv text and re-derived its exponent form;
+\item checked GA's code diff against X1 (four changes, all minimal and exact);
+\item confirmed that the old $\sigma$-edge step fails for E3k and that the strict slack is necessary and sufficient;
+\item recomputed the corner numbers at $\tau=0.4565$ and $0.456692$, and checked that Lemma~\ref{lem:Z} is independent of $\tau$;
+\item re-derived every inequality of the parameter choice;
+\item re-ran the certificate, with bit-identical leaf counts;
+\item re-verified every accepted leaf with the independent script \nolinkurl{r4_verify.py}: $331\,054$ leaves at $\tau_{\rm hi}=913/2000$ and $586\,580$ at
+$\tau_{\rm hi}=0.456692$, with $0$ failures (\S\ref{sec:cert}).
+\end{itemize}
+R4 raised four minor issues, all addressed in this version:
+\begin{itemize}[leftmargin=*]
+\item m1: state E3k with the strict slack, cite \texttt{min0k\_noclosed} as the primary certificate, and drop the closed form and the old edge step;
+\item m2: the script's docstring omits the slack (noted in \S\ref{sec:cert});
+\item m3: editorial consistency of the sanity runs, the old $0.544$ remark (now removed), \S\ref{sec:limits} and the certificate footnote;
+\item m4: cite the leaf-by-leaf re-verifier for reproducibility.
+\end{itemize}
+
+\smallskip
+The note has \emph{not} been refereed by humans. The main residual risks are:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item The audit of the MT text (S2) relies on quotes obtained through a summarising web tool. An independent re-check (S3) agrees, and also used such a tool. In particular,
+the claim that \cite[Lemma~4.2]{MT} and the proof of \cite[Lemma~4.3]{MT} do not use $\theta>0.55$ rests on that reading, together with our own
+re-derivation. R2 lists this as the one inherited caveat.
+\item Classical results are cited as standard, without theorem numbers (Remark~\ref{rem:sources}).
+\item The new certificate was written by one agent (GA). Its code diff was reviewed by R4, and R4's independent script re-verified its leaves.
+Like the earlier versions, it checks only the arithmetic of the box bounds, given the analytic inputs.
+\item The result now depends on the $\inf_k$ display of \cite[Proposition~12.1]{GM}, not only on its closed form; the closed form alone stops at
+$0.5437644$.
+\end{enumerate}
+We have not searched the literature exhaustively for prior applications of \cite{GM} to this problem.
+
+{\small
+\begin{thebibliography}{99}
+\bibitem[Bo]{Bo} J.~Bourgain, \emph{Decoupling, exponential sums and the Riemann zeta function}, J. Amer. Math. Soc. \textbf{30} (2017), 205--224.
+\bibitem[Ga]{Ga} P.~X. Gallagher, \emph{A large sieve density estimate near $\sigma=1$}, Invent. Math. \textbf{11} (1970), 329--339.
+\bibitem[GK]{GK} S.~W. Graham and G.~Kolesnik, \emph{Van der Corput's Method of Exponential Sums}, London Math. Soc. Lecture Note
+Ser. \textbf{126}, Cambridge Univ. Press, 1991.
+\bibitem[GM]{GM} L.~Guth and J.~Maynard, \emph{New large value estimates for Dirichlet polynomials}, Ann. of Math. \textbf{203}
+(2026), 623--675 (journal data as listed in our problem statement); version used: arXiv:2405.20552v2.
+\bibitem[Ha]{Ha} G.~Harman, \emph{Prime-Detecting Sieves}, London Math. Soc. Monographs \textbf{33}, Princeton Univ. Press, 2007.
+\bibitem[HB]{HB} D.~R. Heath-Brown, \emph{The twelfth power moment of the Riemann zeta-function}, Quart. J. Math. Oxford (2) \textbf{29} (1978), 443--462.
+\bibitem[HBI]{HBI} D.~R. Heath-Brown and H.~Iwaniec, \emph{On the difference between consecutive primes}, Invent. Math.
+\textbf{55} (1979), 49--69.
+\bibitem[Hu]{Hu} M.~N. Huxley, \emph{On the difference between consecutive primes}, Invent. Math. \textbf{15} (1972), 164--170.
+\bibitem[In]{In} A.~E. Ingham, \emph{Mean-value theorems in the theory of the Riemann zeta-function}, Proc. London Math. Soc. (2)
+\textbf{27} (1926), 273--300.
+\bibitem[Iv]{Iv} A.~Ivi\'c, \emph{The Riemann Zeta-Function}, Wiley, New York, 1985.
+\bibitem[Ju]{Ju} M.~Jutila, \emph{Zero-density estimates for $L$-functions}, Acta Arith. \textbf{32} (1977), 55--62.
+\bibitem[MT]{MT} K.~Matom\"aki and J.~Ter\"av\"ainen, \emph{On the M\"obius function in all short intervals}, J. Eur. Math. Soc.
+\textbf{25} (2023), 1207--1225; arXiv:1911.09076.
+\bibitem[Mo]{Mo} H.~L. Montgomery, \emph{Topics in Multiplicative Number Theory}, Lecture Notes in Math. \textbf{227}, Springer, 1971.
+\bibitem[MV]{MV} H.~L. Montgomery and R.~C. Vaughan, \emph{Hilbert's inequality}, J. London Math. Soc. (2) \textbf{8} (1974), 73--82.
+\bibitem[Ti]{Ti} E.~C. Titchmarsh, \emph{The Theory of the Riemann Zeta-Function}, 2nd ed., revised by D.~R. Heath-Brown, Oxford
+Univ. Press, 1986.
+\bibitem[TTY]{TTY} T.~Tao, T.~Trudgian and A.~Yang, \emph{Analytic Number Theory Exponent Database (ANTEDB)}, online,
+\url{https://teorth.github.io/expdb/}.
+\end{thebibliography}
+}
+
+\end{document}
