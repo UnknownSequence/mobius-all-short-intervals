@@ -1,0 +1,6 @@
+.DS_Store
+*.tar.gz
+paper/*.aux
+paper/*.log
+paper/*.out
+__pycache__/
